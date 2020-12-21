@@ -106,7 +106,8 @@ int32_t slas_read_point_data (FILE *fp, uint64_t recnum, LASheader *lasheader, u
 
   if (fseeko64 (fp, addr, SEEK_SET) < 0)
     {
-      strcpy (out_str, QObject::tr ("Error on fseek :\n%1\nFunction: %2, Line: %3\n").arg (strerror (errno)).arg (__FUNCTION__).arg (__LINE__).toUtf8 ());
+      strcpy (out_str, QObject::tr ("Error on fseek :\n%1\nFunction: %2, Line: %3\n").arg (strerror (errno)).arg (__FUNCTION__).arg
+              (__LINE__).toUtf8 ());
       fprintf (stderr, "%s", out_str);
       fflush (stderr);
       return (-2);
@@ -121,7 +122,8 @@ int32_t slas_read_point_data (FILE *fp, uint64_t recnum, LASheader *lasheader, u
 
   if (!fread (data, lasheader->point_data_record_length, 1, fp))
     {
-      strcpy (out_str, QObject::tr ("Error reading LAS record :\n%1\nFunction: %2, Line: %3\n").arg (strerror (errno)).arg (__FUNCTION__).arg (__LINE__).toUtf8 ());
+      strcpy (out_str, QObject::tr ("Error reading LAS record :\n%1\nFunction: %2, Line: %3\n").arg (strerror (errno)).arg
+              (__FUNCTION__).arg (__LINE__).toUtf8 ());
       fprintf (stderr, "%s", out_str);
       fflush (stderr);
       return (-3);
@@ -225,6 +227,17 @@ int32_t slas_read_point_data (FILE *fp, uint64_t recnum, LASheader *lasheader, u
       memcpy (&record->Yt, &data[pos], 4); pos += 4;
       memcpy (&record->Zt, &data[pos], 4); pos += 4;
       break;
+    }
+
+
+  //  Check to see if we have the (pseudo-)reflectance extra bytes.  This should only happen with LAS files
+  //  created by czmil2LAS.  I'm not sure if anybody else is going to try to support it.  If they do, 
+  //  someone will have to modify this to make it more generic.
+
+  if ((lasheader->point_data_format == 6 && lasheader->point_data_record_length == 32) ||
+      (lasheader->point_data_format == 7 && lasheader->point_data_record_length == 38))
+    {
+      memcpy (&record->reflectance, &data[pos], 2); pos += 2;
     }
 
 

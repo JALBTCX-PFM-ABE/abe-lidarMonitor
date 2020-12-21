@@ -39,7 +39,7 @@
 
 #ifndef VERSION
 
-#define     VERSION     "PFM Software - lidarMonitor V3.17 - 07/09/18"
+#define     VERSION     "PFM Software - lidarMonitor V3.19 - 01/16/20"
 
 #endif
 
@@ -396,5 +396,20 @@
     07/09/18
 
     - Fixed format bug with waveform byte offset.
+
+
+
+    Version 3.18
+    Jan C. Depner (PFM Software)
+    09/12/19
+
+    - Added display of (pseudo-)reflectance "extra bytes" field in LASv1.4.
+
+
+    Version 3.19
+    Jan C. Depner (PFM Software)
+    01/16/20
+
+    - Multiplied (pseudo-)reflectance "extra bytes" field in LASv1.4 by 0.01.
 
 */

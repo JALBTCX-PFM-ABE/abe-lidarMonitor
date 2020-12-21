@@ -374,6 +374,7 @@ lidarMonitor::trackCursor ()
       else if (strstr (l_share.nearest_filename, ".las"))
         {
           endian = big_endian ();
+          strcpy (las_reflectance_name, "");
 
 
           //  Open the LAS file with LASlib and read the header.
@@ -396,8 +397,8 @@ lidarMonitor::trackCursor ()
           if (lasheader.version_major != 1)
             {
               lasreader->close ();
-              string = tr ("\nLAS major version %1 incorrect, file %2 : %3 %4 %5\n\n").arg (lasheader.version_major).arg (l_share.nearest_filename).arg 
-                (__FILE__).arg (__FUNCTION__).arg (__LINE__);
+              string = tr ("\nLAS major version %1 incorrect, file %2 : %3 %4 %5\n\n").arg (lasheader.version_major).arg
+                (l_share.nearest_filename).arg (__FILE__).arg (__FUNCTION__).arg (__LINE__);
               statusBar ()->showMessage (string);
               
               lock_track = NVFalse;
@@ -408,12 +409,42 @@ lidarMonitor::trackCursor ()
           if (lasheader.version_minor > 4)
             {
               lasreader->close ();
-              string = tr ("\nLAS minor version %1 incorrect, file %2 : %3 %4 %5\n\n").arg (lasheader.version_minor).arg (l_share.nearest_filename).arg 
-                (__FILE__).arg (__FUNCTION__).arg (__LINE__);
+              string = tr ("\nLAS minor version %1 incorrect, file %2 : %3 %4 %5\n\n").arg (lasheader.version_minor).arg
+                (l_share.nearest_filename).arg (__FILE__).arg (__FUNCTION__).arg (__LINE__);
               statusBar ()->showMessage (string);
               
               lock_track = NVFalse;
               return;
+            }
+
+
+          //  Is this LAS 1.4?  If so, look for our extra bytes VLR for reflectance.
+
+          if (lasheader.version_minor == 4)
+            {
+              //  Check for variable length records.  This is based on how it is done in Martin Isenburg's lasinfo.  If you want to
+              //  see how it works you should go check that out.  It's in the LAStools distribution.
+
+              for (int32_t k = 0 ; k < (int32_t) lasheader.number_of_variable_length_records ; k++)
+                {
+                  //  A record ID of 4 means it is an "extra bytes" VLR.
+
+                  if (lasheader.vlrs[k].record_id == 4)
+                    {
+                      for (int j = 0; j < lasheader.vlrs[k].record_length_after_header; j += 192)
+                        {
+                          if (lasheader.vlrs[k].data[j+2])
+                            {
+                              char desc[128];
+                              strcpy (desc, (char *) (lasheader.vlrs[k].data + j + 160));
+                              if (!strncmp (desc, "Radiometric calibration output", 30))
+                                {
+                                  strcpy (las_reflectance_name, (char *) (lasheader.vlrs[k].data + j + 4));
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
 
@@ -1129,6 +1160,20 @@ lidarMonitor::trackCursor ()
               listBox->insertHtml (string);
 
               string = tr ("<b>Z(t) : </b>%1<br>").arg (slas.Zt);
+              listBox->insertHtml (string);
+            }
+
+          if (strlen (las_reflectance_name) > 2 && (lasheader.point_data_format == 6 || lasheader.point_data_format == 7))
+            {
+              if (slas.reflectance)
+                {
+                  string = tr ("<b>%1 : </b>%2<br>").arg (las_reflectance_name).arg (((double) slas.reflectance * 0.01), 5, 'f', 2,
+                                                                                     QChar ('0'));
+                }
+              else
+                {
+                  string = tr ("<b>%1 : </b>0.00<br>").arg (las_reflectance_name);
+                }
               listBox->insertHtml (string);
             }
 

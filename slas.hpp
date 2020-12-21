@@ -80,6 +80,7 @@ typedef struct
   uint8_t                     keypoint;                        //!<  Modifiable in slas_update_point_data.
   uint8_t                     synthetic;                       //!<  Modifiable in slas_update_point_data.
   uint8_t                     overlap;                         //!<  Modifiable in slas_update_point_data.
+  int16_t                     reflectance;                     //!<  Extra bytes (pseudo-)reflectance (see czmil2LAS).
 } SLAS_POINT_DATA;
 
 

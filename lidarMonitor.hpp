@@ -103,7 +103,7 @@ protected:
 
   int32_t             key, pfm_handle[MAX_ABE_PFMS], num_pfms, las_reserved, false_alarm;
 
-  char                program_version[256], progname[256];
+  char                program_version[256], progname[256], las_reflectance_name[128];
 
   uint32_t            kill_switch;
 
